@@ -139,7 +139,7 @@ public class MainApplication {
 			else {
 				DataLine dataLine = getDataLine(line, headers);
 				dataLines.add(dataLine);
-				LOGGER.log(Level.INFO, "Adding line " + dataLine.toString());
+//				LOGGER.log(Level.INFO, "Adding line " + dataLine.toString());
 			}
 		}
 
