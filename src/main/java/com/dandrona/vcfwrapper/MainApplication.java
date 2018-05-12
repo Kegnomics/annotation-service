@@ -27,7 +27,7 @@ public class MainApplication {
 		File result = saveFile(file);
 		if (result != null) {
 			try {
-				Process p = Runtime.getRuntime().exec("perl /home/sushii/Downloads/annovar/table_annovar.pl " + result.getAbsolutePath() + " /home/sushii/Downloads/annovar/humandb/ -buildver hg19 -out output -remove -protocol refGene,exac03,dbnsfp30a -operation g,f,f -nastring . -vcfinput");
+				Process p = Runtime.getRuntime().exec("perl /usr/annovar/table_annovar.pl " + result.getAbsolutePath() + " /usr/annovar/humandb/ -buildver hg19 -out output -remove -protocol refGene,exac03,dbnsfp30a -operation g,f,f -nastring . -vcfinput");
 				printProcessOutput(p);
 
 				Map<String, List<DataLine>> finalMap = new HashMap<>();
