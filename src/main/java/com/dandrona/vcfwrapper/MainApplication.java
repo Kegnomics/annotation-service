@@ -1,6 +1,7 @@
 package com.dandrona.vcfwrapper;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
@@ -26,13 +27,15 @@ public class MainApplication {
 		File result = saveFile(file);
 		if (result != null) {
 			try {
-				Process p = Runtime.getRuntime().exec("perl /home/sushii/Downloads/annovar/table_annovar.pl " + file.getOriginalFilename() + " /home/sushii/Downloads/annovar/humandb/ -buildver hg19 -out output -remove -protocol refGene,cytoBand,exac03,avsnp147,dbnsfp30a -operation g,r,f,f,f -nastring . -vcfinput");
+				Process p = Runtime.getRuntime().exec("perl /home/sushii/Downloads/annovar/table_annovar.pl " + result.getAbsolutePath() + " /home/sushii/Downloads/annovar/humandb/ -buildver hg19 -out output -remove -protocol refGene,exac03,dbnsfp30a -operation g,f,f -nastring . -vcfinput");
 				printProcessOutput(p);
 
 				Map<String, List<DataLine>> finalMap = new HashMap<>();
 				List<DataLine> data =  parseFile("output.hg19_multianno.vcf");
 				finalMap.put("data", data);
-				return new Gson().toJson(finalMap);
+				Gson gson = new GsonBuilder().registerTypeAdapter(KeyValueObject.class, new KeyValueObjectSerializer())
+						.create();
+				return gson.toJson(finalMap);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -43,18 +46,19 @@ public class MainApplication {
 	public File saveFile(MultipartFile file)
 	{
 		try {
-			File convFile = new File(file.getOriginalFilename());
-			convFile.createNewFile();
-			FileOutputStream fos = new FileOutputStream(convFile);
-			fos.write(file.getBytes());
-			fos.close();
-			return convFile;
+			return multipartToFile(file, file.getOriginalFilename());
 		}
 		catch (Exception e) {
 			e.printStackTrace();
 		}
 
 		return null;
+	}
+
+	private static File multipartToFile(MultipartFile multipart, String fileName) throws IllegalStateException, IOException {
+		File tempFile = File.createTempFile(fileName, ".vcf");
+		multipart.transferTo(tempFile);
+		return tempFile;
 	}
 
 	private void printProcessOutput(Process proc) throws IOException {

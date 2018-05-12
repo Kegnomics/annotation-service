@@ -3,9 +3,7 @@ package com.dandrona.vcfwrapper;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 @Data
 public class DataLine {
@@ -16,7 +14,7 @@ public class DataLine {
 	private List<String> alternateBaseList;
 	private double quality;
 	private String filter;
-	private List<KeyValueObject> info;
+	private Map<String, String> info;
 	private boolean isExon = false;
 	private boolean isSilent = false;
 	private String format;
@@ -33,7 +31,7 @@ public class DataLine {
 	public DataLine() {
 		this.referenceBaseList = new ArrayList<>();
 		this.alternateBaseList = new ArrayList<>();
-		this.info = new ArrayList<>();
+		this.info = new HashMap<>();
 	}
 
 	public void setField(String fieldName, String fieldValue) {
@@ -78,15 +76,19 @@ public class DataLine {
 	private void setExtraInfo(String fieldValue) {
 		String[] ids = this.format.split(":");
 		String[] values = fieldValue.split(":");
-		for (int i=0;i<ids.length;i++)
-			this.info.add(new KeyValueObject(ids[i], values[i]));
+		for (int i=0;i<ids.length;i++) {
+			if (!values[i].equals("."))
+				this.info.put(ids[i], values[i]);
+		}
 	}
 
 	private void setInfo(String fieldValue) {
 		String[] infoArray = fieldValue.split(";");
 		for (int i=0;i<infoArray.length;i++) {
 			if (infoArray[i].contains("=")) {
-				this.info.add(new KeyValueObject(infoArray[i], '='));
+				KeyValueObject keyValueObject = new KeyValueObject(infoArray[i], '=');
+				if (!keyValueObject.getValue().equals("."))
+					this.info.put(keyValueObject.getKey(), keyValueObject.getValue());
 			}
 			else {
 				if (infoArray[i].equals("EXON"))
@@ -256,9 +258,9 @@ public class DataLine {
 
 	public String getGeneInfo() {
 		StringBuilder result = new StringBuilder();
-		for (KeyValueObject object : info) {
-			if (object.getKey().equals("GENEINFO")) {
-				String geneInfo = object.getValue();
+		for (String key : info.keySet()) {
+			if (key.equals("GENEINFO")) {
+				String geneInfo = info.get(key);
 				if (geneInfo.contains("|")) {
 					String[] split = geneInfo.split("\\|");
 					for (int i = 0;i<split.length;i++) {
@@ -276,9 +278,9 @@ public class DataLine {
 	}
 
 	public String getRSID() {
-		for (KeyValueObject object : getInfo()) {
-			if (object.getKey().equals("RS")) {
-				String RSID = object.getValue();
+		for (String key : info.keySet()) {
+			if (key.equals("RS")) {
+				String RSID = info.get(key);
 				return "rs" + RSID;
 			}
 		}
